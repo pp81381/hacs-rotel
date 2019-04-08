@@ -1,0 +1,75 @@
+all_rotel:
+  name: Rotel RSP-1570 Icons
+  control: hidden
+  entities:
+  - group.rotel_rsp1570_state
+  - group.rotel_rsp1570_speakers
+  - group.rotel_rsp1570_sound_mode
+  - group.rotel_rsp1570_inputs
+  - group.rotel_rsp1570_misc
+rotel_rsp1570:
+  name: Rotel RSP-1570
+  control: hidden
+  entities:
+  - sensor.rsp1570_source
+  - sensor.rsp1570_info
+  - sensor.rsp1570_volume
+  - sensor.rsp1570_is_muted
+  - sensor.rsp1570_party_mode_on
+rotel_rsp1570_speakers:
+  name: Rotel RSP-1570 Speakers
+  control: hidden
+  entities:
+  - binary_sensor.rsp1570_speaker_front_left
+  - binary_sensor.rsp1570_speaker_center
+  - binary_sensor.rsp1570_speaker_front_right
+  - binary_sensor.rsp1570_speaker_subwoofer
+  - binary_sensor.rsp1570_speaker_surround_left
+  - binary_sensor.rsp1570_speaker_surround_right
+  - binary_sensor.rsp1570_speaker_center_back_left
+  - binary_sensor.rsp1570_speaker_center_back_right
+rotel_rsp1570_state:
+  name: Rotel RSP-1570 State
+  control: hidden
+  entities:
+  - binary_sensor.rsp1570_state_standby_led
+  - binary_sensor.rsp1570_state_zone
+  - binary_sensor.rsp1570_state_zone2
+  - binary_sensor.rsp1570_state_zone3
+  - binary_sensor.rsp1570_state_zone4
+  - binary_sensor.rsp1570_state_display_mode0
+  - binary_sensor.rsp1570_state_display_mode1
+rotel_rsp1570_sound_mode:
+  name: Rotel RSP-1570 Sound Mode
+  control: hidden
+  entities:
+  - binary_sensor.rsp1570_sound_mode_pro_logic
+  - binary_sensor.rsp1570_sound_mode_ii
+  - binary_sensor.rsp1570_sound_mode_x
+  - binary_sensor.rsp1570_sound_mode_dolby_digital
+  - binary_sensor.rsp1570_sound_mode_dts
+  - binary_sensor.rsp1570_sound_mode_es
+  - binary_sensor.rsp1570_sound_mode_ex
+  - binary_sensor.rsp1570_sound_mode_51
+  - binary_sensor.rsp1570_sound_mode_71
+rotel_rsp1570_inputs:
+  name: Rotel RSP-1570 Inputs
+  control: hidden
+  entities:
+  - binary_sensor.rsp1570_input_hdmi
+  - binary_sensor.rsp1570_input_coaxial
+  - binary_sensor.rsp1570_input_optical
+  - binary_sensor.rsp1570_input_analog
+  - binary_sensor.rsp1570_input_1
+  - binary_sensor.rsp1570_input_2
+  - binary_sensor.rsp1570_input_3
+  - binary_sensor.rsp1570_input_4
+  - binary_sensor.rsp1570_input_5
+rotel_rsp1570_misc:
+  name: Rotel RSP-1570 Misc
+  control: hidden
+  entities:
+  - sensor.rsp1570_icons
+  - binary_sensor.rsp1570_misc_sb
+  - binary_sensor.rsp1570_misc_lt
+  - binary_sensor.rsp1570_misc_gt
