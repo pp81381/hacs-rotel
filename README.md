@@ -33,6 +33,15 @@ Note that the state of the media player component is set by messages received fr
 * When you start Home Assistant it is assumed that the device is turned off.  If that isn't the case then any device activity will be enough for the component to align with the device.  If you click the POWER_ON button and the device is already on then that will be enough for the component to work it out.
 * If the device state is changed externally (perhaps by the remote) then Home Assistant will keep in sync with it.
 
+If you want to see a bit more about what's going on then add the following to configuration.yaml
+
+```
+logger:
+  default: info
+  logs:
+    custom_components.rotel_rsp1570.media_player: debug
+```
+
 ### Infra Red Control
 
 My Raspberry Pi has an IR Hat so I can use lirc to trigger Home Assistant automations.
