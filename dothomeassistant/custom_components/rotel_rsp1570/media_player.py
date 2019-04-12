@@ -19,8 +19,6 @@ from homeassistant.const import (
 from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 
-REQUIREMENTS = ['rsp1570serial-pp81381==0.0.5']
-
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'Rotel RSP-1570'
@@ -65,7 +63,6 @@ ATTR_TRIGGERS = "triggers"
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the rsp1570serial platform."""
     # pylint: disable=unused-argument
-
     from rsp1570serial.connection import RotelAmpConn
 
     conn = RotelAmpConn(config.get(CONF_DEVICE))

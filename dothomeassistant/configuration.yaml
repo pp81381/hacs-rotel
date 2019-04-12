@@ -17,7 +17,7 @@ homeassistant:
 default_config:
 
 # Show the introduction message on startup.
-introduction:
+#introduction:
 
 # Uncomment this if you are using SSL/TLS, running in Docker container, etc.
 # http:
