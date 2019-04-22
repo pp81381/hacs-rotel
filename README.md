@@ -18,13 +18,15 @@ Here is a basic example of the configuration.yaml entry needed:
 media_player:
 - platform: rotel_rsp1570
   device: /dev/ttyUSB0
-  source_map:
-    CATV: VIDEO 1
-    NMT: VIDEO 2
-    APPLE TV: VIDEO 3
-    FIRE TV: VIDEO 4
-    BLU RAY: VIDEO 5
-
+  source_aliases:
+    TUNER:
+    TAPE:
+    MULTI:
+    VIDEO 1: CATV
+    VIDEO 2: NMT
+    VIDEO 3: APPLE TV
+    VIDEO 4: FIRE TV
+    VIDEO 5: BLU RAY
 ```
 
 Obviously the `device` parameter needs to match your own environment.   Some examples might be:
@@ -33,7 +35,21 @@ Obviously the `device` parameter needs to match your own environment.   Some exa
 * `COM3` (Windows)
 * `socket://192.168.0.100:50000` (if you are using a TCP/IP to serial  converter)
 
-The keys in `source_map` should ideally exactly match the source names for any inputs that have custom names.
+The parameter `source_alias` allows the media player source list to be customised.   The keys must be from the following set:
+
+```
+' CD'
+MULTI
+TAPE
+TUNER
+VIDEO 1
+VIDEO 2
+VIDEO 3
+VIDEO 4
+VIDEO 5
+```
+
+The values in `source_alias` should ideally exactly match the source names for any inputs that have custom names.   A blank value will cause the corresponding source to be suppressed from the media player source list.
 
 The sample configuration file also demonstrates how to access the granular state of the device via template sensor and binary template sensor elements.
 
@@ -49,6 +65,19 @@ logger:
   logs:
     custom_components.rotel_rsp1570.media_player: debug
 ```
+
+### Services
+
+The media player component offers the followiing services:
+
+Service Name | Parameters | Description
+-------------|------------|------------
+rotel_send_command|entity_id, command_name|Send any RS-232 command to the media player
+rotel_reconnect|entity_id|Reconnect to the media player
+
+The `entity_id` parameter can be a single entity id, a comma separated list or the word `all`.
+
+See `services.yaml` for more information.
 
 ### Infra Red Control
 
