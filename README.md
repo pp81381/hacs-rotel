@@ -35,7 +35,7 @@ Obviously the `device` parameter needs to match your own environment.   Some exa
 * `COM3` (Windows)
 * `socket://192.168.0.100:50000` (if you are using a TCP/IP to serial  converter)
 
-The parameter `source_alias` allows the media player source list to be customised.   The keys must be from the following set:
+The parameter `source_aliases` allows the media player source list to be customised.   The keys must be from the following set:
 
 ```
 ' CD'
@@ -49,7 +49,7 @@ VIDEO 4
 VIDEO 5
 ```
 
-The values in `source_alias` should ideally exactly match the source names for any inputs that have custom names.   A blank value will cause the corresponding source to be suppressed from the media player source list.
+The values in `source_aliases` should ideally exactly match the source names for any inputs that have custom names.   A blank value will cause the corresponding source to be suppressed from the media player source list.
 
 The sample configuration file also demonstrates how to access the granular state of the device via template sensor and binary template sensor elements.
 
