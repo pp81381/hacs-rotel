@@ -324,7 +324,7 @@ class RotelRSP1570Device(MediaPlayerDevice):
         self._icons = message.icons_that_are_on()
         bs_value = lambda x: False if x is None else bool(x)
         self._speaker_icons = {
-            k:bs_value(message.icons[k]) for k in ('CBL', 'CBR', 'SL', 'SR', 'SW', 'FL', 'C', 'FR')}
+            k:bs_value(message.icons[k]) for k in ('CBL', 'CBR', 'SB', 'SL', 'SR', 'SW', 'FL', 'C', 'FR')}
         self._state_icons = {
             k:bs_value(message.icons[k]) for k in (
                 'Standby LED', 'Zone', 'Zone 2', 'Zone 3', 'Zone 4',
@@ -336,7 +336,7 @@ class RotelRSP1570Device(MediaPlayerDevice):
             k:bs_value(message.icons[k]) for k in (
                 'HDMI', 'Coaxial', 'Optical', 'A', '1', '2', '3', '4', '5')}
         # Not actually sure what these are.  Might move them if I ever work it out.
-        self._misc_icons = {k:bs_value(message.icons[k]) for k in ('SB', '<', '>')}
+        self._misc_icons = {k:bs_value(message.icons[k]) for k in ('<', '>')}
         self.async_schedule_update_ha_state()
 
     def handle_trigger_message(self, message):
