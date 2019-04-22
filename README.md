@@ -72,10 +72,24 @@ The media player component offers the followiing services:
 
 Service Name | Parameters | Description
 -------------|------------|------------
-rotel_send_command|entity_id, command_name|Send any RS-232 command to the media player
-rotel_reconnect|entity_id|Reconnect to the media player
+`rotel_send_command`|`entity_id`, `command_name`|Send any RS-232 command to the media player
+`rotel_reconnect`|`entity_id`|Reconnect to the media player
 
 The `entity_id` parameter can be a single entity id, a comma separated list or the word `all`.
+
+Examples of parameters for `rotel_send_command`
+```
+{"entity_id": "media_player.rotel_rsp_1570_emulator", "command_name": "ZONE_2_SOURCE_VIDEO_1"}
+
+{"entity_id": ["media_player.rotel_rsp_1570_emulator","media_player.rotel_rsp_1570"], "command_name": "VOLUME_UP"}
+
+{"entity_id": "all", "command_name": "MUTE_TOGGLE"}
+```
+
+Examples of parameters for `rotel_reconnect`:
+```
+{"entity_id": "media_player.rotel_rsp_1570"}
+```
 
 See `services.yaml` for more information.
 
