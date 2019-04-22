@@ -1,14 +1,11 @@
-all_rotel:
-  name: Rotel RSP-1570 Icons
-  control: hidden
-  entities:
-  - group.rotel_rsp1570_state
-  - group.rotel_rsp1570_speakers
-  - group.rotel_rsp1570_sound_mode
-  - group.rotel_rsp1570_inputs
-  - group.rotel_rsp1570_misc
-rotel_rsp1570:
+rotel_rsp1750_view:
   name: Rotel RSP-1570
+  view: true
+  entities:
+  - media_player.rotel_rsp_1570
+  - group.rotel_rsp1570_info
+rotel_rsp1570_info:
+  name: Rotel RSP-1570 Info
   control: hidden
   entities:
   - sensor.rsp1570_source
@@ -16,6 +13,15 @@ rotel_rsp1570:
   - sensor.rsp1570_volume
   - sensor.rsp1570_is_muted
   - sensor.rsp1570_party_mode_on
+all_rotel:
+  name: Rotel RSP-1570 Groups
+  control: hidden
+  entities:
+  - group.rotel_rsp1570_state
+  - group.rotel_rsp1570_speakers
+  - group.rotel_rsp1570_sound_mode
+  - group.rotel_rsp1570_inputs
+  - group.rotel_rsp1570_misc
 rotel_rsp1570_speakers:
   name: Rotel RSP-1570 Speakers
   control: hidden
@@ -28,6 +34,7 @@ rotel_rsp1570_speakers:
   - binary_sensor.rsp1570_speaker_surround_right
   - binary_sensor.rsp1570_speaker_center_back_left
   - binary_sensor.rsp1570_speaker_center_back_right
+  - binary_sensor.rsp1570_speaker_center_back
 rotel_rsp1570_state:
   name: Rotel RSP-1570 State
   control: hidden
@@ -70,6 +77,5 @@ rotel_rsp1570_misc:
   control: hidden
   entities:
   - sensor.rsp1570_icons
-  - binary_sensor.rsp1570_misc_sb
   - binary_sensor.rsp1570_misc_lt
   - binary_sensor.rsp1570_misc_gt

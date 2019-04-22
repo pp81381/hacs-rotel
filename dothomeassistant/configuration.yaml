@@ -73,6 +73,10 @@ binary_sensor:
         friendly_name: "Center Back Right"
         value_template: >-
             {{ state_attr('media_player.rotel_rsp_1570', 'speaker_icons').CBR }}
+      rsp1570_speaker_center_back:
+        friendly_name: "Center Back"
+        value_template: >-
+            {{ state_attr('media_player.rotel_rsp_1570', 'speaker_icons').SB }}
       rsp1570_speaker_subwoofer:
         friendly_name: "Subwoofer"
         value_template: >-
@@ -201,10 +205,6 @@ binary_sensor:
         value_template: >-
             {{ state_attr('media_player.rotel_rsp_1570', 'input_icons')['5'] }}
 
-      rsp1570_misc_sb:
-        friendly_name: "Misc SB"
-        value_template: >-
-            {{ state_attr('media_player.rotel_rsp_1570', 'misc_icons').SB }}
       rsp1570_misc_lt:
         friendly_name: "Misc <"
         value_template: >-
@@ -221,12 +221,27 @@ tts:
 media_player:
 - platform: rotel_rsp1570
   device: /dev/ttyUSB0
-  source_map:
-    CATV: VIDEO 1
-    NMT: VIDEO 2
-    APPLE TV: VIDEO 3
-    FIRE TV: VIDEO 4
-    BLU RAY: VIDEO 5
+  source_aliases:
+    TUNER:
+    TAPE:
+    MULTI:
+    VIDEO 1: CATV
+    VIDEO 2: NMT
+    VIDEO 3: APPLE TV
+    VIDEO 4: FIRE TV
+    VIDEO 5: BLU RAY
+- platform: rotel_rsp1570
+  name: "Rotel RSP-1570 emulator"
+  device: socket://192.168.2.119:50002
+  source_aliases:
+    TUNER:
+    TAPE:
+    MULTI:
+    VIDEO 1: CATV
+    VIDEO 2: NMT
+    VIDEO 3: APPLE TV
+    VIDEO 4: FIRE TV
+    VIDEO 5: BLU RAY
 
 logger:
   default: info

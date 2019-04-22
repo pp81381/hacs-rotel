@@ -8,15 +8,16 @@ import asyncio
 import logging
 import voluptuous as vol
 from homeassistant.components.media_player import (
-    MediaPlayerDevice, PLATFORM_SCHEMA)
+    DOMAIN, MediaPlayerDevice, PLATFORM_SCHEMA)
 from homeassistant.components.media_player.const import (
     SUPPORT_TURN_OFF, SUPPORT_TURN_ON,
     SUPPORT_SELECT_SOURCE,
     SUPPORT_VOLUME_MUTE, SUPPORT_VOLUME_STEP, SUPPORT_VOLUME_SET)
 from homeassistant.const import (
-    CONF_DEVICE, CONF_NAME, STATE_OFF, STATE_ON,
+    ATTR_ENTITY_ID,
+    CONF_DEVICE, CONF_NAME,
+    STATE_OFF, STATE_ON,
     EVENT_HOMEASSISTANT_STOP)
-from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,14 +27,6 @@ DEFAULT_NAME = 'Rotel RSP-1570'
 SUPPORT_ROTEL_RSP1570 = \
     SUPPORT_VOLUME_SET | SUPPORT_VOLUME_STEP | SUPPORT_VOLUME_MUTE | \
     SUPPORT_TURN_ON | SUPPORT_TURN_OFF | SUPPORT_SELECT_SOURCE
-
-CONF_SOURCE_MAP = "source_map"
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_DEVICE): cv.string,
-    vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    vol.Optional(CONF_SOURCE_MAP): vol.Schema({cv.string: cv.string}),
-})
 
 ROTEL_RSP1570_SOURCES = {
     ' CD': 'SOURCE_CD',
@@ -46,6 +39,15 @@ ROTEL_RSP1570_SOURCES = {
     'VIDEO 5': 'SOURCE_VIDEO_5',
     'MULTI': 'SOURCE_MULTI_INPUT',
 }
+
+CONF_SOURCE_ALIASES = "source_aliases"
+
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+    vol.Required(CONF_DEVICE): cv.string,
+    vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
+    vol.Optional(CONF_SOURCE_ALIASES): vol.Schema(
+        {vol.Any(*ROTEL_RSP1570_SOURCES.keys()): vol.Any(str, None)}),
+})
 
 ATTR_SOURCE_NAME = "source_name"
 ATTR_VOLUME = "volume"
@@ -60,35 +62,75 @@ ATTR_SOUND_MODE_ICONS = "sound_mode_icons"
 ATTR_MISC_ICONS = "misc_icons"
 ATTR_TRIGGERS = "triggers"
 
+ATTR_COMMAND_NAME = "command_name"
+SERVICE_SEND_COMMAND = "rotel_send_command"
+SERVICE_SEND_COMMAND_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+    vol.Required(ATTR_COMMAND_NAME): cv.string,
+})
+SERVICE_RECONNECT = "rotel_reconnect"
+SERVICE_RECONNECT_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+})
+
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the rsp1570serial platform."""
     # pylint: disable=unused-argument
-    from rsp1570serial.connection import RotelAmpConn
 
-    conn = RotelAmpConn(config.get(CONF_DEVICE))
+    device = RotelRSP1570Device(
+        config.get(CONF_NAME),
+        config.get(CONF_DEVICE),
+        config.get(CONF_SOURCE_ALIASES))
 
-    source_map = config.get(CONF_SOURCE_MAP)
-    _LOGGER.debug("CONF_SOURCE_MAP: %r", source_map)
+    async def handle_hass_stop_event(event):
+        """Clean up when hass stops."""
+        await device.cleanup()
 
-    @callback
-    def close_rotel_rsp1570_conn(event):
-        """Close Rotel RSP-1570 connection."""
-        _LOGGER.debug("Closing Rotel RSP-1570 connection")
-        conn.close()
-        _LOGGER.debug("Rotel RSP-1570 connection closed.")
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, handle_hass_stop_event)
+    _LOGGER.debug("Registered device '%s' for HASS stop event", device.name)
 
-    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, close_rotel_rsp1570_conn)
-    _LOGGER.debug("Registered for HASS stop event")
+    await device.open_connection()
 
-    try:
-        await conn.open()
-    except:
-        _LOGGER.error("Could not open connection", exc_info=True)
-        raise
-    else:
-        device = RotelRSP1570Device(config.get(CONF_NAME), conn, source_map)
-        async_add_entities([device])
-        hass.loop.create_task(device.async_read_messages())
+    async_add_entities([device])
+    device.start_read_messages(hass)
+    setup_hass_services(hass)
+
+def setup_hass_services(hass):
+    """
+    Register services.
+    Note that this function is called for every entity but it
+    only needs to be called once for the platform.
+    It doesn't seem to do any harm but I'd like to tidy that up at some point.
+    """
+    _LOGGER.debug("Setting up hass services")
+
+    async def async_handle_send_command(entity, call):
+        command_name = call.data.get(ATTR_COMMAND_NAME)
+        if isinstance(entity, RotelRSP1570Device):
+            _LOGGER.debug("%s service sending command %s to entity %s",
+                          SERVICE_SEND_COMMAND, command_name, entity.entity_id)
+            await entity.send_command(command_name)
+        else:
+            _LOGGER.debug("%s service not sending command %s to incompatible entity %s",
+                          SERVICE_SEND_COMMAND, command_name, entity.entity_id)
+
+    async def async_handle_reconnect(entity, call):
+        # pylint: disable=unused-argument
+        if isinstance(entity, RotelRSP1570Device):
+            _LOGGER.debug("%s service reconnecting entity %s",
+                          SERVICE_RECONNECT, entity.entity_id)
+            await entity.reconnect()
+        else:
+            _LOGGER.debug("%s service not reconnecting incompatible entity %s",
+                          SERVICE_RECONNECT, entity.entity_id)
+
+    component = hass.data[DOMAIN]
+    component.async_register_entity_service(
+        SERVICE_SEND_COMMAND, SERVICE_SEND_COMMAND_SCHEMA,
+        async_handle_send_command)
+    component.async_register_entity_service(
+        SERVICE_RECONNECT, SERVICE_RECONNECT_SCHEMA,
+        async_handle_reconnect)
 
 class RotelRSP1570Device(MediaPlayerDevice):
     """Representation of a Rotel RSP-1570 device."""
@@ -96,14 +138,16 @@ class RotelRSP1570Device(MediaPlayerDevice):
     # pylint: disable=too-many-public-methods
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, name, conn, source_map):
+    def __init__(self, name, device, source_aliases):
         """Initialize the Rotel RSP-1570 device."""
         self._name = name
-        self._conn = conn
+        self._device = device
+        self._conn = None # Make sure that you call open_connection...
+        self._read_messages_task = None # ... and start_read_messages
         self._state = STATE_OFF
         self._source_name = None
         self._volume = None
-        self.set_source_lists(source_map)
+        self.set_source_lists(source_aliases)
         self._mute_on = None
         self._party_mode_on = None
         self._info = None
@@ -115,41 +159,157 @@ class RotelRSP1570Device(MediaPlayerDevice):
         self._misc_icons = None
         self._triggers = None
 
-    def set_source_lists(self, source_map):
+    @property
+    def should_poll(self) -> bool:
+        """This entity pushes its state to HA."""
+        return False
+
+    async def open_connection(self):
+        """Open a connection to the device."""
+        from rsp1570serial.connection import RotelAmpConn
+        conn = RotelAmpConn(self._device)
+        try:
+            await conn.open()
+        except Exception:
+            _LOGGER.error("Could not open connection", exc_info=True)
+            raise
+        self._conn = conn
+
+    def close_connection(self):
+        """ Close the connection to the device."""
+        if self._conn is not None:
+            self._conn.close()
+
+    def start_read_messages(self, hass):
+        """Create a task to start reading messages."""
+        self._read_messages_task = hass.loop.create_task(self.async_read_messages())
+
+    async def cancel_read_messages(self):
+        """Cancel the _read_messages_task."""
+        if self._read_messages_task is not None:
+            _LOGGER.info("Cancelling read_messages task.  Done was: %r.",
+                         self._read_messages_task.done())
+            if not self._read_messages_task.done():
+                self._read_messages_task.cancel()
+                await self._read_messages_task
+            else:
+                ex = self._read_messages_task.exception()
+                if ex is not None:
+                    _LOGGER.error("Read messages task contained an exception.", exc_info=ex)
+            self._read_messages_task = None
+
+    async def async_read_messages(self):
+        """
+        Read messages published by the device and use them to maintain state in this device.
+        Schedule a DISPLAY_REFRESH command before we start reading.   If the device is
+        already on then this is a null command that will simply trigger a feedback message
+        that will sync the state of this object with the physical device.
+        """
+        _LOGGER.info("Message reader started for %s.", self.name)
+        try:
+            await self.send_command('DISPLAY_REFRESH')
+            async for message in self._conn.read_messages():
+                _LOGGER.debug("Message received by %s.", self.name)
+                self.handle_message(message)
+        except asyncio.CancelledError:
+            _LOGGER.info("Message reader cancelled for %s", self.name)
+        except Exception:
+            _LOGGER.error((
+                "Message reader for '%s' exiting due to unexpected exception. "
+                "Message reader can be reinstated by calling '%s' service."
+            ), self.name, SERVICE_RECONNECT)
+            raise
+
+    async def reconnect(self):
+        """
+        Reconnect.
+        Don't call this more often than needed - it is asynchronous
+        and it doesn't check for activity in progress on the connection
+        so there could be a risk of a conflict.
+        """
+        await self.cancel_read_messages()
+
+        #Ignore any errors while closing the connection because
+        #the reason we'd be doing this would probably be due to some
+        #sort of issue with the existing connection anyway.
+        try:
+            self.close_connection()
+        # pylint: disable=broad-except
+        except Exception:
+            _LOGGER.error("Could not close connection", exc_info=True)
+            _LOGGER.warning("Ignoring error and attempting to reconnect")
+
+        # Set the state to OFF by default
+        # If the player is actually on then the state will be refreshed
+        # when the message reader restarts
+        self._state = STATE_OFF
+        self.async_schedule_update_ha_state()
+
+        await self.open_connection()
+
+        # N.B. this line can only be executed after
+        # async_add_entities has been called and completed
+        # because otherwise self.hass won't be available.
+        self.start_read_messages(self.hass)
+
+    async def cleanup(self):
+        """Close connection and stop message reader."""
+        _LOGGER.info("Cleaning up '%s'", self.name)
+        await self.cancel_read_messages()
+        self.close_connection()
+        _LOGGER.info("Finished cleaning up '%s'", self.name)
+
+    def set_source_lists(self, source_aliases):
         """
         Set list of sources that can be selected.
         For sources that have an alias defined then let the user pick that instead.
+        To use an alias for a source, provide an entry in the source_aliases
+        map of the form <source>: <alias>
+        To suppress a source, provide an entry in the source_aliases
+        map of the form <source>: None
+        Any sources not suppressed and not aliased will remain as-is
+        Note that the amp could still be switched to one of the suppressed
+        sources using the remote control or front panel.  The
+        media player card seems to handle this gracefully enough.
+        Example of using source_aliases in configuration.yaml:
+
+        media_player:
+        - platform: rotel_rsp1570
+          device: /dev/ttyUSB0
+          source_aliases:
+            TAPE:
+            MULTI:
+            VIDEO 1: CATV
+            VIDEO 2: NMT
+            VIDEO 3: APPLE TV
+            VIDEO 4: FIRE TV
+            VIDEO 5: BLU RAY
         """
+        _LOGGER.debug("source_aliases: %r", source_aliases)
         sources_to_select = {}
         aliased_sources = set()
-        for alias, source in source_map.items():
-            aliased_sources.add(source)
-            sources_to_select[alias] = ROTEL_RSP1570_SOURCES[source]
+        if source_aliases is not None:
+            for source, alias in source_aliases.items():
+                if alias is None:
+                    aliased_sources.add(source)
+                else:
+                    aliased_sources.add(source)
+                    sources_to_select[alias] = ROTEL_RSP1570_SOURCES[source]
         for source, cmd in ROTEL_RSP1570_SOURCES.items():
             if source not in aliased_sources:
                 sources_to_select[source] = cmd
         _LOGGER.debug("Sources to select: %r", sources_to_select)
         self._sources_to_select = sources_to_select
 
-    async def async_read_messages(self):
-        """
-        Read messages published by the device and use them to maintain state in this device
-        This routine is intended to be run in a new asyncio task
-        """
+    def handle_message(self, message):
+        """Route each type of message to an appropriate handler."""
         from rsp1570serial.messages import FeedbackMessage, TriggerMessage
-
-        _LOGGER.debug("Message reader started.")
-        try:
-            async for message in self._conn.read_messages():
-                _LOGGER.debug("Message received.")
-                if isinstance(message, FeedbackMessage):
-                    self.handle_feedback_message(message)
-                elif isinstance(message, TriggerMessage):
-                    self.handle_trigger_message(message)
-                else:
-                    _LOGGER.warning("Unknown message type encountered")
-        except asyncio.CancelledError:
-            _LOGGER.info("Message reader cancelled")
+        if isinstance(message, FeedbackMessage):
+            self.handle_feedback_message(message)
+        elif isinstance(message, TriggerMessage):
+            self.handle_trigger_message(message)
+        else:
+            _LOGGER.warning("Unknown message type encountered")
 
     def handle_feedback_message(self, message):
         """Map feedback message to object attributes."""
@@ -293,3 +453,7 @@ class RotelRSP1570Device(MediaPlayerDevice):
     def is_volume_muted(self):
         """Boolean if volume is currently muted."""
         return self._mute_on
+
+    async def send_command(self, command_name):
+        """ Send a command to the device. """
+        await self._conn.send_command(command_name)

@@ -1,0 +1,21 @@
+rsp_1570_reconnect:
+  alias: Reconnect Rotel RSP-1570
+  sequence:
+  - service: media_player.rotel_reconnect
+    data:
+      entity_id: media_player.rotel_rsp_1570
+rsp_1570_emulator_reconnect:
+  alias: Reconnect Rotel RSP-1570 Emulator
+  sequence:
+  - service: media_player.rotel_reconnect
+    data:
+      entity_id: media_player.rotel_rsp_1570_emulator
+rsp_1570_emulator_power_toggle:
+  alias: Rotel RSP-1570 Emulator POWER_TOGGLE
+  sequence:
+  - service: media_player.rotel_send_command
+    data:
+      entity_id: media_player.rotel_rsp_1570_emulator
+      command_name: POWER_TOGGLE
+
+
