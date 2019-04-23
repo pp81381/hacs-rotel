@@ -10,9 +10,9 @@ The component utilises the [rsp1570serial](https://pypi.org/project/rsp1570seria
 
 ### Configuration
 
-Take a look at configuration.yaml and groups.yaml in the .homeassistant folder for usage examples.
+Take a look at `configuration.yaml` and `groups.yaml` in the `.homeassistant` folder for usage examples.
 
-Here is a basic example of the configuration.yaml entry needed:
+Here is a basic example of the `configuration.yaml` entry needed:
 
 ```
 media_player:
@@ -35,7 +35,7 @@ Obviously the `device` parameter needs to match your own environment.   Some exa
 * `COM3` (Windows)
 * `socket://192.168.0.100:50000` (if you are using a TCP/IP to serial  converter)
 
-The parameter `source_aliases` allows the media player source list to be customised.   The keys must be from the following set:
+The parameter `source_aliases` is an *optional* argument that allows the media player source list to be customised.   The keys must be from the following set:
 
 ```
 ' CD'
@@ -49,9 +49,9 @@ VIDEO 4
 VIDEO 5
 ```
 
-The values in `source_aliases` should ideally exactly match the source names for any inputs that have custom names.   A blank value will cause the corresponding source to be suppressed from the media player source list.
+The values in `source_aliases` should ideally exactly match the source names for any inputs that have custom names.   A blank value will cause the corresponding source to be suppressed from the media player source list.   If a default source isn't aliased or suppressed then it will appear as-is.
 
-The sample configuration file also demonstrates how to access the granular state of the device via template sensor and binary template sensor elements.
+The sample `configuration.yaml` file also demonstrates how to access the granular state of the device via template sensor and binary template sensor elements.
 
 Note that the state of the media player component is set by messages received from the device.
 * When you start Home Assistant it is assumed that the device is turned off.  If that isn't the case then any device activity will be enough for the component to align with the device.  If you click the POWER_ON button and the device is already on then that will be enough for the component to work it out.
