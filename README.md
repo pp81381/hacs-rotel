@@ -72,7 +72,7 @@ The media player component offers the followiing services:
 
 Service Name | Parameters | Description
 -------------|------------|------------
-`rotel_send_command`|`entity_id`, `command_name`|Send any RS-232 command to the media player
+`rotel_send_command`|`entity_id`, `command_name`|Send a command to the media player.   See `commands.py` ([here](https://github.com/pp81381/rsp1570serial/blob/master/rsp1570serial/commands.py)) in the [rsp1570serial](https://github.com/pp81381/rsp1570serial) GitHub project for a full list of available commands.
 `rotel_reconnect`|`entity_id`|Reconnect to the media player
 
 The `entity_id` parameter can be a single entity id, a comma separated list or the word `all`.
