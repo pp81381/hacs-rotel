@@ -62,6 +62,27 @@ sensor:
         value_template: "{{ state_attr('media_player.rotel_rsp_1570', 'icons') }}"
         icon_template: mdi:lightbulb-on-outline
 
+      rsp1570_emulator_source:
+        friendly_name: "Source"
+        entity_id: media_player.rotel_rsp_1570_emulator
+        value_template: "{{ state_attr('media_player.rotel_rsp_1570_emulator', 'source') }}"
+        icon_template: mdi:video-input-hdmi
+      rsp1570_emulator_volume:
+        friendly_name: "Volume"
+        entity_id: media_player.rotel_rsp_1570_emulator
+        value_template: "{{ state_attr('media_player.rotel_rsp_1570_emulator', 'volume') }}"
+        icon_template: mdi:volume-high
+      rsp1570_emulator_is_muted:
+        friendly_name: "Is Muted"
+        entity_id: media_player.rotel_rsp_1570_emulator
+        value_template: "{{ state_attr('media_player.rotel_rsp_1570_emulator', 'is_volume_muted') }}"
+        icon_template: mdi:volume-mute
+      rsp1570_emulator_info:
+        friendly_name: "Info"
+        entity_id: media_player.rotel_rsp_1570_emulator
+        value_template: "{{ state_attr('media_player.rotel_rsp_1570_emulator', 'info') }}"
+        icon_template: mdi:surround-sound
+ 
 binary_sensor:
   - platform: template
     sensors:
@@ -216,7 +237,7 @@ binary_sensor:
 
 # Text to speech
 tts:
-  - platform: google
+  - platform: google_translate
 
 media_player:
 - platform: rotel_rsp1570
