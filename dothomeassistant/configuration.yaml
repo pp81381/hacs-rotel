@@ -238,14 +238,12 @@ binary_sensor:
 # Text to speech
 tts:
   - platform: google_translate
+    service_name: google_say
 
 media_player:
 - platform: rotel_rsp1570
   device: /dev/ttyUSB0
   source_aliases:
-    TUNER:
-    TAPE:
-    MULTI:
     VIDEO 1: CATV
     VIDEO 2: NMT
     VIDEO 3: APPLE TV
