@@ -1,10 +1,11 @@
 {
   "domain": "rotel_rsp1570",
-  "name": "Rotel RSP-1570",
+  "name": "Rotel Media Player",
   "documentation": "https://github.com/pp81381/hassdev/blob/master/README.md",
   "requirements": [
-    "rsp1570serial-pp81381==0.1.1"
+    "rsp1570serial-pp81381==0.1.5"
   ],
   "dependencies": [],
-  "codeowners": ["@pp81381"]
+  "codeowners": ["@pp81381"],
+  "version": "1.0.0"
 }

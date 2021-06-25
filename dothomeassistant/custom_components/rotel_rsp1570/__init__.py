@@ -1,1 +1,1 @@
-"""Rotel RsP-1570 media player component."""
+"""Rotel Media Player component."""
