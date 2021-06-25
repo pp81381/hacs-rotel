@@ -17,6 +17,7 @@ Here is a basic example of the `configuration.yaml` entry needed:
 ```
 media_player:
 - platform: rotel_rsp1570
+  unique_id: rotel_rsp1570_1
   device: /dev/ttyUSB0
   source_aliases:
     TUNER:
@@ -28,6 +29,10 @@ media_player:
     VIDEO 4: FIRE TV
     VIDEO 5: BLU RAY
 ```
+
+The `unique_id` parameter is required by HA
+
+A `name` parameter is optional.   The "slugified" name will be used as the basis for the names of all of the states associated with the entity.   The default is "Rotel RSP-1570" which will result in states prefixed with `media_player.rotel_rsp_1570`.
 
 Obviously the `device` parameter needs to match your own environment.   Some examples might be:
 

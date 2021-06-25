@@ -242,6 +242,7 @@ tts:
 
 media_player:
 - platform: rotel_rsp1570
+  unique_id: rotel_rsp1570_1
   device: /dev/ttyUSB0
   source_aliases:
     VIDEO 1: CATV
@@ -250,6 +251,7 @@ media_player:
     VIDEO 4: FIRE TV
     VIDEO 5: BLU RAY
 - platform: rotel_rsp1570
+  unique_id: rotel_rsp1570_2
   name: "Rotel RSP-1570 emulator"
   device: socket://192.168.2.119:50002
   source_aliases:
