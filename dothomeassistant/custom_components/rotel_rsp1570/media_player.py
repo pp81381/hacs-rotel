@@ -2,9 +2,17 @@
 import asyncio
 import logging
 
+from rsp1570serial import ROTEL_RSP1570_SOURCES
+from rsp1570serial.commands import MAX_VOLUME
+from rsp1570serial.connection import RotelAmpConn
+from rsp1570serial.messages import FeedbackMessage, TriggerMessage
 import voluptuous as vol
 
-from homeassistant.components.media_player import DOMAIN, PLATFORM_SCHEMA
+from homeassistant.components.media_player import (
+    DOMAIN,
+    PLATFORM_SCHEMA,
+    MediaPlayerEntity,
+)
 from homeassistant.components.media_player.const import (
     SUPPORT_SELECT_SOURCE,
     SUPPORT_TURN_OFF,
@@ -23,19 +31,7 @@ from homeassistant.const import (
 )
 import homeassistant.helpers.config_validation as cv
 
-try:
-    from homeassistant.components.media_player import MediaPlayerEntity
-except ImportError:
-    from homeassistant.components.media_player import (
-        MediaPlayerDevice as MediaPlayerEntity,
-    )
-
 DEFAULT_NAME = "Rotel RSP-1570"
-
-from rsp1570serial import ROTEL_RSP1570_SOURCES
-from rsp1570serial.commands import MAX_VOLUME
-from rsp1570serial.connection import RotelAmpConn
-from rsp1570serial.messages import FeedbackMessage, TriggerMessage
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -198,6 +194,8 @@ def make_source_map(source_aliases):
 
 
 def make_icon_state_dict(message_icons, icon_names):
+    """Extract the icon state for icon_names from message."""
+
     def binary_sensor_value(icon_flag):
         return False if icon_flag is None else bool(icon_flag)
 
@@ -205,6 +203,7 @@ def make_icon_state_dict(message_icons, icon_names):
 
 
 def init_icon_state_dict(icon_names):
+    """Initialise the icon state for icon_names."""
     return {k: False for k in icon_names}
 
 
