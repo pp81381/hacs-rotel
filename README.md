@@ -1,8 +1,4 @@
-# hassdev
-
-My Home Assistant customisations
-
-## rotel_rsp1570
+## rotel
 
 This is a media player custom component that can control a Rotel RSP-1570 processor
 
@@ -16,8 +12,8 @@ Here is a basic example of the `configuration.yaml` entry needed:
 
 ```
 media_player:
-- platform: rotel_rsp1570
-  unique_id: rotel_rsp1570_1
+- platform: rotel
+  unique_id: rotel_rsp1570
   device: /dev/ttyUSB0
   source_aliases:
     TUNER:
@@ -68,7 +64,7 @@ If you want to see a bit more about what's going on then add the following to co
 logger:
   default: info
   logs:
-    custom_components.rotel_rsp1570.media_player: debug
+    custom_components.rotel.media_player: debug
 ```
 
 ### Services

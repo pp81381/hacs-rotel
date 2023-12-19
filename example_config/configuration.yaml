@@ -241,8 +241,8 @@ tts:
     service_name: google_say
 
 media_player:
-- platform: rotel_rsp1570
-  unique_id: rotel_rsp1570_1
+- platform: rotel
+  unique_id: rotel_rsp1570
   device: /dev/ttyUSB0
   source_aliases:
     VIDEO 1: CATV
@@ -250,8 +250,8 @@ media_player:
     VIDEO 3: APPLE TV
     VIDEO 4: FIRE TV
     VIDEO 5: BLU RAY
-- platform: rotel_rsp1570
-  unique_id: rotel_rsp1570_2
+- platform: rotel
+  unique_id: rotel_rsp1570_em
   name: "Rotel RSP-1570 emulator"
   device: socket://192.168.2.119:50002
   source_aliases:
@@ -267,7 +267,7 @@ media_player:
 logger:
   default: info
   logs:
-    custom_components.rotel_rsp1570.media_player: debug
+    custom_components.rotel.media_player: debug
 
 lirc:
 
