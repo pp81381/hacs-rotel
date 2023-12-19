@@ -1,5 +1,5 @@
 {
-  "domain": "rotel_rsp1570",
+  "domain": "rotel",
   "name": "Rotel Media Player",
   "codeowners": [
     "@pp81381"
@@ -7,9 +7,10 @@
   "dependencies": [],
   "documentation": "https://github.com/pp81381/hassdev/blob/master/README.md",
   "integration_type": "hub",
+  "issue_tracker": "https://github.com/pp81381/hacs-rotel/issues",
+  "iot_class": "local_push",
   "requirements": [
     "rsp1570serial-pp81381==0.1.8"
   ],
-  "iot_class": "local_push",
   "version": "1.0.1"
 }
