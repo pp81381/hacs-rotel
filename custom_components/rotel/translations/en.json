@@ -1,0 +1,19 @@
+{
+    "title": "Rotel",
+    "services": {
+        "rotel_send_command": {
+            "name": "Send Command",
+            "description": "Send a command to a Rotel device.",
+            "fields": {
+                "command_name": {
+                    "name": "Command Name",
+                    "description": "Command to send."
+                }
+            }
+        },
+        "rotel_reconnect": {
+            "name": "Re-connect",
+            "description": "Reconnect to a Rotel device that may have been disconnected."
+        }
+    }
+}

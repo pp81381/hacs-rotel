@@ -1,22 +1,245 @@
+rotel_reconnect:
+  target:
+    entity:
+      integration: rotel
+      domain: media_player
+
 rotel_send_command:
-  name: Send Command
-  description: "Send a command to a Rotel device."
+  target:
+    entity:
+      integration: rotel
+      domain: media_player
   fields:
     command_name:
-      name: Command Name
-      description: >-
-        Command name.
-        See rsp1570serial module commands.py for available commands.
-      example: 'POWER_TOGGLE'
-    entity_id:
-      name: Entity ID
-      description: Name(s) of the entities to set (or 'all')
-      example: 'media_player.rotel'
-rotel_reconnect:
-  name: Re-connect
-  description: "Reconnect to a Rotel device that may have been disconnected."
-  fields:
-    entity_id:
-      name: Entity ID
-      description: Name(s) of the entities to set (or 'all')
-      example: 'media_player.rotel'
+      required: true
+      selector:
+        select:
+          options:
+            - POWER_TOGGLE
+            - POWER_OFF
+            - POWER_ON
+            - VOLUME_UP
+            - VOLUME_DOWN
+            - MUTE_TOGGLE
+            - POWER_OFF_ALL_ZONES
+            - SOURCE_CD
+            - SOURCE_TUNER
+            - SOURCE_TAPE
+            - SOURCE_VIDEO_1
+            - SOURCE_VIDEO_2
+            - SOURCE_VIDEO_3
+            - SOURCE_VIDEO_4
+            - SOURCE_VIDEO_5
+            - SOURCE_MULTI_INPUT
+            - STEREO___BYPASS_TOGGLE
+            - DOLBY_3_STEREO
+            - DOLBY_PLIIX_MODE_TOGGLE
+            - DSP_MODE_TOGGLE
+            - DOLBY_3_STEREO___PLIIX_TOGGLE
+            - DTS_NEO_6_MUSIC_CINEMA_TOGGLE
+            - DSP_1
+            - DSP_2
+            - DSP_3
+            - DSP_4
+            - 5_CHANNEL_STEREO
+            - 7_CHANNEL_STEREO
+            - DOLBY_PLIIX_CINEMA
+            - DOLBY_PLIIX_MUSIC
+            - DOLBY_PLIIX_GAME
+            - DOLBY_PRO_LOGIC
+            - DTS_NEO_6_MUSIC
+            - DTS_NEO_6_CINEMA
+            - PLII_PANORAMA_TOGGLE
+            - PLII_DIMENSION_UP
+            - PLII_DIMENSION_DOWN
+            - PLII_CENTER_WIDTH_UP
+            - PLII_CENTER_WIDTH_DOWN
+            - DOLBY_DIGITAL_EX_TOGGLE
+            - NEXT_SURROUND_MODE
+            - TREBLE_UP
+            - TREBLE_DOWN
+            - BASS_UP
+            - BASS_DOWN
+            - TONE_CONTROL_SELECT
+            - OSD_MENU
+            - ENTER
+            - CURSOR_RIGHT
+            - CURSOR_LEFT
+            - CURSOR_UP
+            - CURSOR_DOWN
+            - RECORD_FUNCTION_SELECT
+            - DYNAMIC_RANGE
+            - DIGITAL_INPUT_SELECT
+            - ZONE_2___MAIN
+            - TEMPORARY_CENTER_TRIM
+            - TEMPORARY_SUBWOOFER_TRIM
+            - TEMPORARY_SURROUND_TRIM
+            - CINEMA_EQ_TOGGLE
+            - FRONT_DISPLAY_ON_OFF
+            - DISPLAY_REFRESH
+            - PARTY_MODE_TOGGLE
+            - OUTPUT_RESOLUTION
+            - HDMI_AMP_MODE
+            - HDMI_TV_MODE
+            - FORCE_FACTORY_DEFAULT
+            - MAIN_ZONE_POWER_TOGGLE
+            - MAIN_ZONE_POWER_OFF
+            - MAIN_ZONE_POWER_ON
+            - MAIN_ZONE_VOLUME_UP
+            - MAIN_ZONE_VOLUME_DOWN
+            - MAIN_ZONE_MUTE_TOGGLE
+            - MAIN_ZONE_MUTE_ON
+            - MAIN_ZONE_MUTE_OFF
+            - MAIN_ZONE_SOURCE_CD
+            - MAIN_ZONE_SOURCE_TUNER
+            - MAIN_ZONE_SOURCE_TAPE
+            - MAIN_ZONE_SOURCE_VIDEO_1
+            - MAIN_ZONE_SOURCE_VIDEO_2
+            - MAIN_ZONE_SOURCE_VIDEO_3
+            - MAIN_ZONE_SOURCE_VIDEO_4
+            - MAIN_ZONE_SOURCE_VIDEO_5
+            - MAIN_ZONE_SOURCE_MULTI_INPUT
+            - RECORD_SOURCE_CD
+            - RECORD_SOURCE_TUNER
+            - RECORD_SOURCE_TAPE
+            - RECORD_SOURCE_VIDEO_1
+            - RECORD_SOURCE_VIDEO_2
+            - RECORD_SOURCE_VIDEO_3
+            - RECORD_SOURCE_VIDEO_4
+            - RECORD_SOURCE_VIDEO_5
+            - RECORD_FOLLOW_MAIN_ZONE_SOURCE
+            - ZONE_2_POWER_TOGGLE
+            - ZONE_2_POWER_OFF
+            - ZONE_2_POWER_ON
+            - ZONE_2_VOLUME_UP
+            - ZONE_2_VOLUME_DOWN
+            - ZONE_2_MUTE_TOGGLE
+            - ZONE_2_MUTE_ON
+            - ZONE_2_MUTE_OFF
+            - ZONE_2_SOURCE_CD
+            - ZONE_2_SOURCE_TUNER
+            - ZONE_2_SOURCE_TAPE
+            - ZONE_2_SOURCE_VIDEO_1
+            - ZONE_2_SOURCE_VIDEO_2
+            - ZONE_2_SOURCE_VIDEO_3
+            - ZONE_2_SOURCE_VIDEO_4
+            - ZONE_2_SOURCE_VIDEO_5
+            - ZONE_2_FOLLOW_MAIN_ZONE_SOURCE
+            - ZONE_3_POWER_TOGGLE
+            - ZONE_3_POWER_OFF
+            - ZONE_3_POWER_ON
+            - ZONE_3_VOLUME_UP
+            - ZONE_3_VOLUME_DOWN
+            - ZONE_3_MUTE_TOGGLE
+            - ZONE_3_MUTE_ON
+            - ZONE_3_MUTE_OFF
+            - ZONE_3_SOURCE_CD
+            - ZONE_3_SOURCE_TUNER
+            - ZONE_3_SOURCE_TAPE
+            - ZONE_3_SOURCE_VIDEO_1
+            - ZONE_3_SOURCE_VIDEO_2
+            - ZONE_3_SOURCE_VIDEO_3
+            - ZONE_3_SOURCE_VIDEO_4
+            - ZONE_3_SOURCE_VIDEO_5
+            - ZONE_3_FOLLOW_MAIN_ZONE_SOURCE
+            - ZONE_4_POWER_TOGGLE
+            - ZONE_4_POWER_OFF
+            - ZONE_4_POWER_ON
+            - ZONE_4_VOLUME_UP
+            - ZONE_4_VOLUME_DOWN
+            - ZONE_4_MUTE_TOGGLE
+            - ZONE_4_MUTE_ON
+            - ZONE_4_MUTE_OFF
+            - ZONE_4_SOURCE_CD
+            - ZONE_4_SOURCE_TUNER
+            - ZONE_4_SOURCE_TAPE
+            - ZONE_4_SOURCE_VIDEO_1
+            - ZONE_4_SOURCE_VIDEO_2
+            - ZONE_4_SOURCE_VIDEO_3
+            - ZONE_4_SOURCE_VIDEO_4
+            - ZONE_4_SOURCE_VIDEO_5
+            - ZONE_4_FOLLOW_MAIN_ZONE_SOURCE
+            - VOLUME_MIN
+            - VOLUME_1
+            - VOLUME_2
+            - VOLUME_3
+            - VOLUME_4
+            - VOLUME_5
+            - VOLUME_6
+            - VOLUME_7
+            - VOLUME_8
+            - VOLUME_9
+            - VOLUME_10
+            - VOLUME_16
+            - VOLUME_32
+            - VOLUME_40
+            - VOLUME_64
+            - VOLUME_80
+            - VOLUME_95
+            - VOLUME_MAX
+            - ZONE_2_VOLUME_MIN
+            - ZONE_2_VOLUME_1
+            - ZONE_2_VOLUME_2
+            - ZONE_2_VOLUME_3
+            - ZONE_2_VOLUME_4
+            - ZONE_2_VOLUME_5
+            - ZONE_2_VOLUME_6
+            - ZONE_2_VOLUME_16
+            - ZONE_2_VOLUME_38
+            - ZONE_2_VOLUME_48
+            - ZONE_2_VOLUME_64
+            - ZONE_2_VOLUME_80
+            - ZONE_2_VOLUME_95
+            - ZONE_2_VOLUME_MAX
+            - ZONE_3_VOLUME_MIN
+            - ZONE_3_VOLUME_1
+            - ZONE_3_VOLUME_2
+            - ZONE_3_VOLUME_3
+            - ZONE_3_VOLUME_4
+            - ZONE_3_VOLUME_5
+            - ZONE_3_VOLUME_6
+            - ZONE_3_VOLUME_16
+            - ZONE_3_VOLUME_36
+            - ZONE_3_VOLUME_48
+            - ZONE_3_VOLUME_64
+            - ZONE_3_VOLUME_80
+            - ZONE_3_VOLUME_95
+            - ZONE_3_VOLUME_MAX
+            - ZONE_4_VOLUME_MIN
+            - ZONE_4_VOLUME_1
+            - ZONE_4_VOLUME_2
+            - ZONE_4_VOLUME_3
+            - ZONE_4_VOLUME_4
+            - ZONE_4_VOLUME_5
+            - ZONE_4_VOLUME_6
+            - ZONE_4_VOLUME_16
+            - ZONE_4_VOLUME_36
+            - ZONE_4_VOLUME_48
+            - ZONE_4_VOLUME_64
+            - ZONE_4_VOLUME_80
+            - ZONE_4_VOLUME_95
+            - ZONE_4_VOLUME_MAX
+            - MAIN_ZONE_12V_TRIGGER_1_TOGGLE
+            - MAIN_ZONE_12V_TRIGGER_2_TOGGLE
+            - MAIN_ZONE_12V_TRIGGER_3_TOGGLE
+            - MAIN_ZONE_12V_TRIGGER_4_TOGGLE
+            - MAIN_ZONE_12V_TRIGGER_5_TOGGLE
+            - MAIN_ZONE_12V_TRIGGER_6_TOGGLE
+            - ZONE_2_12V_TRIGGER_1_TOGGLE
+            - ZONE_2_12V_TRIGGER_2_TOGGLE
+            - ZONE_2_12V_TRIGGER_3_TOGGLE
+            - ZONE_2_12V_TRIGGER_4_TOGGLE
+            - ZONE_2_12V_TRIGGER_5_TOGGLE
+            - ZONE_2_12V_TRIGGER_6_TOGGLE
+            - ZONE_3_12V_TRIGGER_1_TOGGLE
+            - ZONE_3_12V_TRIGGER_2_TOGGLE
+            - ZONE_3_12V_TRIGGER_3_TOGGLE
+            - ZONE_3_12V_TRIGGER_4_TOGGLE
+            - ZONE_3_12V_TRIGGER_5_TOGGLE
+            - ZONE_3_12V_TRIGGER_6_TOGGLE
+            - ZONE_4_12V_TRIGGER_1_TOGGLE
+            - ZONE_4_12V_TRIGGER_2_TOGGLE
+            - ZONE_4_12V_TRIGGER_3_TOGGLE
+            - ZONE_4_12V_TRIGGER_4_TOGGLE
+            - ZONE_4_12V_TRIGGER_5_TOGGLE
+            - ZONE_4_12V_TRIGGER_6_TOGGLE
