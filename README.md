@@ -6,8 +6,6 @@ The component utilises the [rsp1570serial](https://pypi.org/project/rsp1570seria
 
 ### Configuration
 
-Take a look at `configuration.yaml` and `groups.yaml` in the `.homeassistant` folder for usage examples.
-
 Here is a basic example of the `configuration.yaml` entry needed:
 
 ```
@@ -52,8 +50,6 @@ VIDEO 5
 
 The values in `source_aliases` should ideally exactly match the source names for any inputs that have custom names.   A blank value will cause the corresponding source to be suppressed from the media player source list.   If a default source isn't aliased or suppressed then it will appear as-is.
 
-The sample `configuration.yaml` file also demonstrates how to access the granular state of the device via template sensor and binary template sensor elements.
-
 Note that the state of the media player component is set by messages received from the device.
 * When you start Home Assistant it is assumed that the device is turned off.  If that isn't the case then any device activity will be enough for the component to align with the device.  If you click the POWER_ON button and the device is already on then that will be enough for the component to work it out.
 * If the device state is changed externally (perhaps by the remote) then Home Assistant will keep in sync with it.
@@ -94,14 +90,58 @@ Examples of parameters for `rotel_reconnect`:
 
 See `services.yaml` for more information.
 
-### Infra Red Control
+### Setting up sensors and binary_sensors
 
-My Raspberry Pi has an IR Hat so I can use lirc to trigger Home Assistant automations.
+A script is provided to simplify the creation of yaml configuration files that define sensor and binary sensor entities that will reflect the state of the device.
 
-I chose a random remote control from the lirc remotes database and then configured my Harmony Hub with the same device.   Now I can use this fake remote to control Home Assistant as part of a Harmony activity.
+Usage of the script is summarised below.
 
-Please see .lircrc and automations.yaml for my PoC configuration.    Plus, you need to add the following into your configuration.yaml file:
 ```
-lirc:
+usage: make_config.py [-h] [-F OUTPUT_FOLDER] [-l LEGACY_FILE_BASENAME] [-m MODERN_FILE_BASENAME] [-i ID_PREFIX] [-p LEGACY_NAME_PREFIX] [-P MODERN_NAME_PREFIX] [-e ENTITY_NAME]
+
+options:
+  -h, --help            show this help message and exit
+  -F, --output-folder OUTPUT_FOLDER
+  -l, --legacy-file-basename LEGACY_FILE_BASENAME
+  -m, --modern-file-basename MODERN_FILE_BASENAME
+  -i, --id-prefix ID_PREFIX
+  -p, --legacy-name-prefix LEGACY_NAME_PREFIX
+  -P, --modern-name-prefix MODERN_NAME_PREFIX
+  -e, --entity-name ENTITY_NAME
+  ```
+
+The script will generate yaml for both legacy and modern template sensor definitions for all available device state information.  All parameters are optional and have sensible defaults.   Simply take the preferred file and remove any entries that aren't needed.
+
+The legacy format looks like this:
+
+```yaml
+sensor:
+- platform: template
+    sensors:
+      <id-prefix>_source:
+        unique_id: uid_<id-prefix>-source
+        friendly_name: "<legacy-name-prefix> Source"
+        value_template: "{{ state_attr('<entity-name>', 'source') }}"
+        icon_template: mdi:video-input-hdmi
 ```
 
+The modern format looks like this:
+
+```yaml
+template:
+  - unique_id: uid_<id-prefix>_modern
+    sensor:
+    - unique_id: source
+      name: "<modern-name-prefix> Source"
+      icon: mdi:video-input-hdmi
+      state: "{{ state_attr('<entity-name>', 'source') }}"
+```
+
+The default settings for the legacy format should generate the same entity ids and names as were used in the example configuration that used to be provided with this custom component.
+
+The generated yaml can simply be included in the main `configuration.yaml` file.  Another option is to leverage [Home Assistant Packages](https://www.home-assistant.io/docs/configuration/packages/).  Put the generated yaml into a folder called `packages` and then modify the `homeassistant` entry in `configuration.yaml` as follows:
+
+```yaml
+homeassistant:
+  packages: !include_dir_named packages
+```
