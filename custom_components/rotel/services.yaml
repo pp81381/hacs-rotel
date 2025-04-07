@@ -14,6 +14,13 @@ rotel_send_command:
       required: true
       selector:
         select:
+          # This list is the union of all commands 
+          # supported by the rsp1570 and the rsp1572
+          # (Not sure how to make the service def dynamic)
+          # If a command isn't supported by your model
+          # then nothing happens
+          # Check the rsp1570serial <model>_messages.py files
+          # for the commands supported by each model
           options:
             - POWER_TOGGLE
             - POWER_OFF
@@ -30,10 +37,13 @@ rotel_send_command:
             - SOURCE_VIDEO_3
             - SOURCE_VIDEO_4
             - SOURCE_VIDEO_5
+            - SOURCE_VIDEO_6
+            - SOURCE_IPOD_USB
             - SOURCE_MULTI_INPUT
             - STEREO___BYPASS_TOGGLE
             - DOLBY_3_STEREO
             - DOLBY_PLIIX_MODE_TOGGLE
+            - DOLBY_PLIIX_MODE_MUSIC_CINEMA_TOGGLE
             - DSP_MODE_TOGGLE
             - DOLBY_3_STEREO___PLIIX_TOGGLE
             - DTS_NEO_6_MUSIC_CINEMA_TOGGLE
@@ -47,6 +57,7 @@ rotel_send_command:
             - DOLBY_PLIIX_MUSIC
             - DOLBY_PLIIX_GAME
             - DOLBY_PRO_LOGIC
+            - DOLBY_PLIIZ
             - DTS_NEO_6_MUSIC
             - DTS_NEO_6_CINEMA
             - PLII_PANORAMA_TOGGLE
@@ -63,10 +74,43 @@ rotel_send_command:
             - TONE_CONTROL_SELECT
             - OSD_MENU
             - ENTER
+            - EXIT
             - CURSOR_RIGHT
             - CURSOR_LEFT
             - CURSOR_UP
             - CURSOR_DOWN
+            - CURSOR_RIGHT_KEY_PRESSED
+            - CURSOR_RIGHT_KEY_RELEASED
+            - CURSOR_LEFT_KEY_PRESSED
+            - CURSOR_LEFT_KEY_RELEASED
+            - CURSOR_UP_KEY_PRESSED
+            - CURSOR_UP_KEY_RELEASED
+            - CURSOR_DOWN_KEY_PRESSED
+            - CURSOR_DOWN_KEY_RELEASED
+            - NUMBER_KEY_1
+            - NUMBER_KEY_2
+            - NUMBER_KEY_3
+            - NUMBER_KEY_4
+            - NUMBER_KEY_5
+            - NUMBER_KEY_6
+            - NUMBER_KEY_7
+            - NUMBER_KEY_8
+            - NUMBER_KEY_9
+            - NUMBER_KEY_0
+            - PLAY
+            - PAUSE
+            - STOP_KEY_PRESSED
+            - STOP_KEY_RELEASED
+            - TRACK_FORWARD_KEY_PRESSED
+            - TRACK_FORWARD_KEY_RELEASED
+            - TRACK_BACK_KEY_PRESSED
+            - TRACK_BACK_KEY_RELEASED
+            - SCAN_FORWARD_KEY_PRESSED
+            - SCAN_FORWARD_KEY_RELEASED
+            - SCAN_BACK_KEY_PRESSED
+            - SCAN_BACK_KEY_RELEASED
+            - SHUFFLE
+            - REPEAT
             - RECORD_FUNCTION_SELECT
             - DYNAMIC_RANGE
             - DIGITAL_INPUT_SELECT
@@ -81,6 +125,9 @@ rotel_send_command:
             - OUTPUT_RESOLUTION
             - HDMI_AMP_MODE
             - HDMI_TV_MODE
+            - TEMPORARY_ROOM_EQ_TOGGLE
+            - DISPLAY
+            - SPEAKER_LEVEL_SETTING_TOGGLE
             - FORCE_FACTORY_DEFAULT
             - MAIN_ZONE_POWER_TOGGLE
             - MAIN_ZONE_POWER_OFF
@@ -90,6 +137,7 @@ rotel_send_command:
             - MAIN_ZONE_MUTE_TOGGLE
             - MAIN_ZONE_MUTE_ON
             - MAIN_ZONE_MUTE_OFF
+            - MAIN_ZONE_POWER_OFF_ALL_ZONES
             - MAIN_ZONE_SOURCE_CD
             - MAIN_ZONE_SOURCE_TUNER
             - MAIN_ZONE_SOURCE_TAPE
@@ -98,6 +146,8 @@ rotel_send_command:
             - MAIN_ZONE_SOURCE_VIDEO_3
             - MAIN_ZONE_SOURCE_VIDEO_4
             - MAIN_ZONE_SOURCE_VIDEO_5
+            - MAIN_ZONE_SOURCE_VIDEO_6
+            - MAIN_ZONE_SOURCE_IPOD_USB
             - MAIN_ZONE_SOURCE_MULTI_INPUT
             - RECORD_SOURCE_CD
             - RECORD_SOURCE_TUNER
@@ -107,6 +157,8 @@ rotel_send_command:
             - RECORD_SOURCE_VIDEO_3
             - RECORD_SOURCE_VIDEO_4
             - RECORD_SOURCE_VIDEO_5
+            - RECORD_SOURCE_VIDEO_6
+            - RECORD_SOURCE_IPOD_USB
             - RECORD_FOLLOW_MAIN_ZONE_SOURCE
             - ZONE_2_POWER_TOGGLE
             - ZONE_2_POWER_OFF
@@ -116,6 +168,7 @@ rotel_send_command:
             - ZONE_2_MUTE_TOGGLE
             - ZONE_2_MUTE_ON
             - ZONE_2_MUTE_OFF
+            - ZONE_2_POWER_OFF_ALL_ZONES
             - ZONE_2_SOURCE_CD
             - ZONE_2_SOURCE_TUNER
             - ZONE_2_SOURCE_TAPE
@@ -124,7 +177,10 @@ rotel_send_command:
             - ZONE_2_SOURCE_VIDEO_3
             - ZONE_2_SOURCE_VIDEO_4
             - ZONE_2_SOURCE_VIDEO_5
+            - ZONE_2_SOURCE_VIDEO_6
+            - ZONE_2_SOURCE_IPOD_USB
             - ZONE_2_FOLLOW_MAIN_ZONE_SOURCE
+            - ZONE_2_PARTY_MODE_TOGGLE
             - ZONE_3_POWER_TOGGLE
             - ZONE_3_POWER_OFF
             - ZONE_3_POWER_ON
@@ -133,6 +189,7 @@ rotel_send_command:
             - ZONE_3_MUTE_TOGGLE
             - ZONE_3_MUTE_ON
             - ZONE_3_MUTE_OFF
+            - ZONE_3_POWER_OFF_ALL_ZONES
             - ZONE_3_SOURCE_CD
             - ZONE_3_SOURCE_TUNER
             - ZONE_3_SOURCE_TAPE
@@ -141,7 +198,10 @@ rotel_send_command:
             - ZONE_3_SOURCE_VIDEO_3
             - ZONE_3_SOURCE_VIDEO_4
             - ZONE_3_SOURCE_VIDEO_5
+            - ZONE_3_SOURCE_VIDEO_6
+            - ZONE_3_SOURCE_IPOD_USB
             - ZONE_3_FOLLOW_MAIN_ZONE_SOURCE
+            - ZONE_3_PARTY_MODE_TOGGLE
             - ZONE_4_POWER_TOGGLE
             - ZONE_4_POWER_OFF
             - ZONE_4_POWER_ON
@@ -150,6 +210,7 @@ rotel_send_command:
             - ZONE_4_MUTE_TOGGLE
             - ZONE_4_MUTE_ON
             - ZONE_4_MUTE_OFF
+            - ZONE_4_POWER_OFF_ALL_ZONES
             - ZONE_4_SOURCE_CD
             - ZONE_4_SOURCE_TUNER
             - ZONE_4_SOURCE_TAPE
@@ -158,7 +219,10 @@ rotel_send_command:
             - ZONE_4_SOURCE_VIDEO_3
             - ZONE_4_SOURCE_VIDEO_4
             - ZONE_4_SOURCE_VIDEO_5
+            - ZONE_4_SOURCE_VIDEO_6
+            - ZONE_4_SOURCE_IPOD_USB
             - ZONE_4_FOLLOW_MAIN_ZONE_SOURCE
+            - ZONE_4_PARTY_MODE_TOGGLE
             - VOLUME_MIN
             - VOLUME_1
             - VOLUME_2
@@ -172,7 +236,9 @@ rotel_send_command:
             - VOLUME_10
             - VOLUME_16
             - VOLUME_32
+            - VOLUME_38
             - VOLUME_40
+            - VOLUME_48
             - VOLUME_64
             - VOLUME_80
             - VOLUME_95
@@ -185,6 +251,7 @@ rotel_send_command:
             - ZONE_2_VOLUME_5
             - ZONE_2_VOLUME_6
             - ZONE_2_VOLUME_16
+            - ZONE_2_VOLUME_36
             - ZONE_2_VOLUME_38
             - ZONE_2_VOLUME_48
             - ZONE_2_VOLUME_64
@@ -199,6 +266,7 @@ rotel_send_command:
             - ZONE_3_VOLUME_5
             - ZONE_3_VOLUME_6
             - ZONE_3_VOLUME_16
+            - ZONE_3_VOLUME_34
             - ZONE_3_VOLUME_36
             - ZONE_3_VOLUME_48
             - ZONE_3_VOLUME_64
@@ -213,6 +281,7 @@ rotel_send_command:
             - ZONE_4_VOLUME_5
             - ZONE_4_VOLUME_6
             - ZONE_4_VOLUME_16
+            - ZONE_4_VOLUME_34
             - ZONE_4_VOLUME_36
             - ZONE_4_VOLUME_48
             - ZONE_4_VOLUME_64

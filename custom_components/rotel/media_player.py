@@ -2,13 +2,29 @@
 
 import asyncio
 import logging
-from typing import Callable, Union
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional
 
 import voluptuous as vol
+from rsp1570serial.connection import RotelAmpConn
+from rsp1570serial.messages import (
+    AnyMessage,
+    FeedbackMessage,
+    SmartDisplayMessage,
+    TriggerMessage,
+)
+from rsp1570serial.rotel_model_meta import (
+    ROTEL_MODELS,
+    RSP1570_MODEL_ID,
+    RotelModelMeta,
+)
+
 from homeassistant.components.media_player import (
     PLATFORM_SCHEMA,
     MediaPlayerDeviceClass,
     MediaPlayerEntity,
+)
+from homeassistant.components.media_player.const import (
     MediaPlayerEntityFeature,
     MediaPlayerState,
 )
@@ -18,30 +34,56 @@ from homeassistant.const import (
     CONF_UNIQUE_ID,
     EVENT_HOMEASSISTANT_STOP,
 )
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_platform
-from rsp1570serial import ROTEL_RSP1570_SOURCES
-from rsp1570serial.commands import MAX_VOLUME
-from rsp1570serial.connection import RotelAmpConn
-from rsp1570serial.messages import FeedbackMessage, TriggerMessage
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 DEFAULT_NAME = "Rotel RSP-1570"
+DEFAULT_MODEL = RSP1570_MODEL_ID
 
 _LOGGER = logging.getLogger(__name__)
 
+CONF_MODEL_SPEC = "model_spec"
+CONF_MODEL = "model"
 CONF_SOURCE_ALIASES = "source_aliases"
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Required(CONF_DEVICE): cv.string,
-        vol.Required(CONF_UNIQUE_ID): cv.string,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_SOURCE_ALIASES): vol.Schema(
-            {vol.Any(*ROTEL_RSP1570_SOURCES.keys()): vol.Any(str, None)}
-        ),
-    }
-)
+
+def make_model_spec_schema(meta: RotelModelMeta) -> vol.Schema:
+    return vol.Schema(
+        {
+            vol.Required(CONF_MODEL): vol.Literal(meta.model_id),
+            vol.Optional(CONF_SOURCE_ALIASES): vol.Schema(
+                {vol.Any(*[m.standard_name for m in meta.sources]): vol.Any(str, None)}
+            ),
+        },
+    )
+
+
+def validate_model_spec(value: Any) -> dict:
+    """Validate a model spec"""
+    if not isinstance(value, dict):
+        raise vol.Invalid("expected dictionary")
+    model = value.get(CONF_MODEL, DEFAULT_MODEL)
+    meta = ROTEL_MODELS[model]
+    model_spec_schema = make_model_spec_schema(meta)
+    return model_spec_schema(value)
+
+
+ROTEL_SCHEMA = {
+    vol.Required(CONF_DEVICE): cv.string,
+    vol.Required(CONF_UNIQUE_ID): cv.string,
+    vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
+    vol.Exclusive(CONF_SOURCE_ALIASES, "model_spec"): {
+        vol.Any(
+            *[m.standard_name for m in ROTEL_MODELS[DEFAULT_MODEL].sources]
+        ): vol.Any(str, None)
+    },
+    vol.Exclusive(CONF_MODEL_SPEC, "model_spec"): validate_model_spec,
+}
+
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(ROTEL_SCHEMA)
 
 ATTR_DISPLAY_VOLUME = "display_volume"
 ATTR_PARTY_MODE_ON = "party_mode_on"
@@ -53,6 +95,7 @@ ATTR_INPUT_ICONS = "input_icons"
 ATTR_SOUND_MODE_ICONS = "sound_mode_icons"
 ATTR_MISC_ICONS = "misc_icons"
 ATTR_TRIGGERS = "triggers"
+ATTR_SMART_DISPLAY = "smart_display"  # RSP1572 only
 
 ATTR_COMMAND_NAME = "command_name"
 SERVICE_SEND_COMMAND = "rotel_send_command"
@@ -85,18 +128,33 @@ INPUT_ICON_NAMES = ("HDMI", "Coaxial", "Optical", "A", "1", "2", "3", "4", "5")
 MISC_ICON_NAMES = ("<", ">")
 
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(
+    hass: HomeAssistant,
+    config: ConfigType,
+    async_add_entities: AddEntitiesCallback,
+    discovery_info: DiscoveryInfoType | None = None,
+):
     """Set up the rsp1570serial platform."""
     # pylint: disable=unused-argument
 
-    source_map = make_source_map(config.get(CONF_SOURCE_ALIASES))
+    if CONF_MODEL_SPEC in config:
+        model_spec = config.get(CONF_MODEL_SPEC)
+        assert model_spec is not None
+        model = model_spec.get(CONF_MODEL)
+        source_aliases = model_spec.get(CONF_SOURCE_ALIASES)
+    else:
+        model = DEFAULT_MODEL
+        source_aliases = config.get(CONF_SOURCE_ALIASES)
 
-    entity = RotelMediaPlayer(
-        config[CONF_UNIQUE_ID],
-        config[CONF_NAME],
-        config[CONF_DEVICE],
-        source_map,
-    )
+    meta = ROTEL_MODELS[model]
+
+    source_map = make_alias_source_map(meta, source_aliases)
+
+    serial_port = config[CONF_DEVICE]
+    unique_id = config[CONF_UNIQUE_ID]
+    conn_factory = RotelConnectionWrapperFactory(serial_port, unique_id, meta)
+
+    entity = RotelMediaPlayer(unique_id, config[CONF_NAME], conn_factory, source_map)
 
     async_add_entities([entity])
     setup_hass_services(hass)
@@ -155,21 +213,25 @@ def setup_hass_services(hass):
     )
 
 
-def make_source_map(source_aliases):
+def make_alias_source_map(
+    meta: RotelModelMeta,
+    source_aliases: Optional[Dict[str, str]],
+) -> Dict[str, str]:
     """Return a dict of selectable source aliases mapped to command_code."""
-    source_map = {}
+    standard_source_map = {m.standard_name: m.command_code for m in meta.sources}
+    alias_source_map = {}
     sources_seen = set()
     if source_aliases is not None:
         for source, alias in source_aliases.items():
             sources_seen.add(source)
             if alias is not None:
-                command_code = ROTEL_RSP1570_SOURCES[source]
-                source_map[alias] = command_code
-    for source, command_code in ROTEL_RSP1570_SOURCES.items():
+                command_code = standard_source_map[source]
+                alias_source_map[alias] = command_code
+    for source, command_code in standard_source_map.items():
         if source not in sources_seen:
-            source_map[source] = command_code
-    _LOGGER.debug("Sources to select: %r", source_map)
-    return source_map
+            alias_source_map[source] = command_code
+    _LOGGER.debug("Sources to select: %r", alias_source_map)
+    return alias_source_map
 
 
 def make_icon_state_dict(message_icons, icon_names):
@@ -187,27 +249,26 @@ def init_icon_state_dict(icon_names):
 
 
 class RotelConnectionWrapper:
-    def __init__(self, device: str, unique_id: str):
+    def __init__(self, conn: RotelAmpConn, unique_id: str):
         """Wraps device connection to ensure correct management of state"""
-        self._device = device
         self._unique_id = unique_id
-        self._conn: Union[RotelAmpConn, None] = None
+        self._conn = conn
+
+    @property
+    def meta(self) -> RotelModelMeta:
+        return self._conn.meta
 
     async def async_open(self):
         """Open a connection to the device."""
-        conn = RotelAmpConn(self._device)
-        await conn.open()
-        self._conn = conn
+        await self._conn.open()
 
-    def close(self):
+    async def async_close(self):
         """Close the connection to the device."""
-        if self._conn is not None:
-            self._conn.close()
-            self._conn = None
+        await self._conn.close()
 
     async def async_read_messages(
         self,
-        message_handler: Callable[[Union[FeedbackMessage, TriggerMessage]], None],
+        message_handler: Callable[[AnyMessage], None],
     ) -> None:
         """
         Read messages published by the device.
@@ -237,6 +298,33 @@ class RotelConnectionWrapper:
         await self._conn.send_volume_direct_command(zone, device_volume)
 
 
+@dataclass
+class RotelConnectionWrapperFactory:
+    serial_port: str
+    unique_id: str
+    meta: RotelModelMeta
+
+    def make_conn(self) -> RotelConnectionWrapper:
+        conn = RotelAmpConn(self.serial_port, self.meta)
+        return RotelConnectionWrapper(conn, self.unique_id)
+
+
+def make_smart_display_lines(
+    prev_lines: Optional[List[str]],
+    message: SmartDisplayMessage,
+) -> List[str]:
+    if prev_lines is None:
+        lines = 10 * [""]
+    else:
+        lines = prev_lines.copy()
+
+    for lineno, line in enumerate(message.lines, message.start):
+        if lineno <= 10:
+            lines[lineno - 1] = line
+
+    return lines
+
+
 class RotelMediaPlayer(MediaPlayerEntity):
     """Representation of a Rotel media player."""
 
@@ -254,9 +342,16 @@ class RotelMediaPlayer(MediaPlayerEntity):
     # pylint: disable=too-many-public-methods
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, unique_id, name, device, source_map):
+    def __init__(
+        self,
+        unique_id: str,
+        name: str,
+        conn_factory: RotelConnectionWrapperFactory,
+        source_map: Dict[str, str],
+    ):
         """Initialize the device."""
-        self._conn = RotelConnectionWrapper(device, unique_id)
+        self._conn_factory = conn_factory
+        self._conn = self._conn_factory.make_conn()
         self._source_map = source_map
 
         self._read_messages_task = None
@@ -282,6 +377,7 @@ class RotelMediaPlayer(MediaPlayerEntity):
         self._input_icons = init_icon_state_dict(INPUT_ICON_NAMES)
         self._misc_icons = init_icon_state_dict(MISC_ICON_NAMES)
         self._triggers = None
+        self._smart_display: Optional[List[str]] = None
 
     async def async_added_to_hass(self):
         """Open connection and set up remove event when entity added to hass."""
@@ -340,7 +436,7 @@ class RotelMediaPlayer(MediaPlayerEntity):
         # the reason we'd be doing this would probably be due to some
         # sort of issue with the existing connection anyway.
         try:
-            self._conn.close()
+            await self._conn.async_close()
         # pylint: disable=broad-except
         except Exception:
             _LOGGER.exception("Could not close connection for '%s'", self.unique_id)
@@ -351,6 +447,11 @@ class RotelMediaPlayer(MediaPlayerEntity):
         self._attr_state = MediaPlayerState.OFF
         self.async_schedule_update_ha_state()
 
+        # Replace the old connection object
+        # Not strictly necessary but better safe than sorry
+        self._conn = self._conn_factory.make_conn()
+
+        # Open the connection
         await self._conn.async_open()
         self._start_read_messages()
 
@@ -358,26 +459,27 @@ class RotelMediaPlayer(MediaPlayerEntity):
         """Close connection and stop message reader."""
         _LOGGER.info("Cleaning up '%s'", self.unique_id)
         await self._cancel_read_messages()
-        self._conn.close()
+        await self._conn.async_close()
         _LOGGER.info("Finished cleaning up '%s'", self.unique_id)
 
-    def handle_message(self, message):
+    def handle_message(self, message: AnyMessage):
         """Route each type of message to an appropriate handler."""
 
         if isinstance(message, FeedbackMessage):
             self.handle_feedback_message(message)
         elif isinstance(message, TriggerMessage):
             self.handle_trigger_message(message)
+        elif isinstance(message, SmartDisplayMessage):
+            self.handle_smart_display_message(message)
         else:
             _LOGGER.error("Unknown message type encountered")
 
-    @staticmethod
-    def device_vol_to_vol_level(device_volume: Union[int, None]) -> Union[float, None]:
+    def device_vol_to_vol_level(self, device_volume: Optional[int]) -> Optional[float]:
         if device_volume is None:
             return None
-        return device_volume / MAX_VOLUME
+        return device_volume / self._conn.meta.max_volume
 
-    def handle_feedback_message(self, message):
+    def handle_feedback_message(self, message: FeedbackMessage):
         """Map feedback message to object attributes."""
         fields = message.parse_display_lines()
         self._attr_state = (
@@ -399,9 +501,14 @@ class RotelMediaPlayer(MediaPlayerEntity):
         self._misc_icons = make_icon_state_dict(message.icons, MISC_ICON_NAMES)
         self.async_schedule_update_ha_state()
 
-    def handle_trigger_message(self, message):
+    def handle_trigger_message(self, message: TriggerMessage):
         """Map trigger message to object attributes."""
         self._triggers = message.flags_to_list(message.flags)
+        self.async_schedule_update_ha_state()
+
+    def handle_smart_display_message(self, message: SmartDisplayMessage):
+        """Map smart display message to object attributes."""
+        self._smart_display = make_smart_display_lines(self._smart_display, message)
         self.async_schedule_update_ha_state()
 
     async def async_turn_on(self):
@@ -454,11 +561,12 @@ class RotelMediaPlayer(MediaPlayerEntity):
             ATTR_SOUND_MODE_ICONS: self._sound_mode_icons,
             ATTR_MISC_ICONS: self._misc_icons,
             ATTR_TRIGGERS: self._triggers,
+            ATTR_SMART_DISPLAY: self._smart_display,
         }
 
     async def async_set_volume_level(self, volume: float):
         """Set volume level, range 0..1."""
-        scaled_volume: int = round(volume * MAX_VOLUME)
+        scaled_volume: int = round(volume * self._conn.meta.max_volume)
         _LOGGER.debug("Set volume to: %r", scaled_volume)
         await self._conn.async_send_volume_direct_command(1, scaled_volume)
 
