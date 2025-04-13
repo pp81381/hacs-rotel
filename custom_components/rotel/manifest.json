@@ -10,7 +10,7 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/pp81381/hacs-rotel/issues",
   "requirements": [
-    "rsp1570serial-pp81381==1.0.1.dev7"
+    "rsp1570serial-pp81381==1.0.1"
   ],
   "version": "1.0.2"
 }
